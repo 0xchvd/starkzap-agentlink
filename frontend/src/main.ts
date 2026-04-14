@@ -1,11 +1,10 @@
 import { connect, disconnect } from "@starknet-io/get-starknet";
 import {
   StarkZap,
-  Contract,
   TransactionFinalityStatus,
   type Call,
 } from "starkzap";
-import { cairo, num, WalletAccount } from "starknet";
+import { cairo, num, WalletAccount, Contract } from "starknet";
 import abi from "../abi.json";
 
 // --- Starkzap SDK initialization ---
