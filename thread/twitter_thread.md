@@ -52,6 +52,7 @@ open source, MIT. claude code skill is a one-liner:
 
 built for @starkzap week 2 builder challenge. three days of work. the missing primitive has a name now.
 
+live demo: https://dist-cyan-theta-66.vercel.app
 contract: https://sepolia.voyager.online/contract/0x01142b845add36cc4fa7a105e3d0dd0e61e5c0b0b4c22826e41c697a48b15fcb
 repo: github.com/0xchvd/starkzap-agentlink
 

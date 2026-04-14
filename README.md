@@ -43,6 +43,10 @@ Revoke any time. Refunds the remainder.
 
 3. **The escrow adds what Cartridge policies don't.** Cartridge session keys allow `(contract, method)` policy pairs but don't handle escrow isolation, per-tx amount caps, total spend caps, destination allowlists, or multi-grant segregation from one sender. AgentLink composes those on top of Cartridge's model.
 
+## Live Demo
+
+**[Try AgentLink on Sepolia](https://dist-cyan-theta-66.vercel.app)** — connect ArgentX or Braavos, create a scoped link, look up its rules, and revoke it. No backend, everything on-chain.
+
 ## Live on Starknet Sepolia
 
 | | |
