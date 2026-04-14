@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentLink — Scoped Payments for AI Agents</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <header>
+    <div class="header-left">
+      <h1>AgentLink</h1>
+      <span class="badge">Starknet Sepolia</span>
+    </div>
+    <button id="btn-connect" class="btn btn-primary">Connect Wallet</button>
+  </header>
+
+  <main>
+    <!-- Hero / explainer -->
+    <section class="hero">
+      <p class="tagline">Scoped payment rails for AI agents. Fund an agent without giving it your keys.</p>
+      <div class="how-it-works">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text"><strong>Create Link</strong><br/>Lock funds + set rules: which contracts, destinations, caps, expiry.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text"><strong>Agent Spends</strong><br/>Agent signs with session key. Escrow enforces all rules on-chain.</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text"><strong>Revoke Anytime</strong><br/>Pull remaining funds back instantly. Agent can't escalate.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wallet status -->
+    <section id="wallet-status" class="card hidden">
+      <h2>Wallet</h2>
+      <div class="info-grid">
+        <span class="label">Address</span>
+        <span id="wallet-addr" class="mono">—</span>
+        <span class="label">STRK Balance</span>
+        <span id="wallet-balance">—</span>
+      </div>
+    </section>
+
+    <!-- Create Link -->
+    <section id="section-create" class="card hidden">
+      <h2>Create AgentLink</h2>
+      <p class="hint">Lock STRK into the escrow with spending rules for your agent.</p>
+      <form id="form-create">
+        <div class="form-row">
+          <label for="inp-funding">Funding Amount (STRK)</label>
+          <input id="inp-funding" type="number" step="0.01" min="0.01" value="1" required />
+        </div>
+        <div class="form-row">
+          <label for="inp-pertx">Per-Transaction Cap (STRK)</label>
+          <input id="inp-pertx" type="number" step="0.01" min="0.01" value="0.5" required />
+        </div>
+        <div class="form-row">
+          <label for="inp-expiry">Expires In</label>
+          <select id="inp-expiry">
+            <option value="3600">1 hour</option>
+            <option value="86400" selected>1 day</option>
+            <option value="604800">7 days</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="inp-contracts">Allowed Contracts (one per line)</label>
+          <textarea id="inp-contracts" rows="2" placeholder="0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d"></textarea>
+        </div>
+        <div class="form-row">
+          <label for="inp-destinations">Allowed Destinations (one per line)</label>
+          <textarea id="inp-destinations" rows="2" placeholder="0x... agent or treasury address"></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary" id="btn-create">Create Link</button>
+      </form>
+      <div id="create-result" class="result hidden"></div>
+    </section>
+
+    <!-- Lookup / Dashboard -->
+    <section id="section-lookup" class="card hidden">
+      <h2>Link Dashboard</h2>
+      <p class="hint">Look up any AgentLink by its ID to see rules, remaining budget, and status.</p>
+      <div class="form-row inline">
+        <input id="inp-linkid" type="number" min="1" placeholder="Link ID" />
+        <button id="btn-lookup" class="btn">Lookup</button>
+      </div>
+      <div id="lookup-result" class="hidden">
+        <div class="info-grid" id="link-info"></div>
+        <div class="btn-row">
+          <button id="btn-revoke" class="btn btn-danger">Revoke & Refund</button>
+        </div>
+      </div>
+      <div id="lookup-error" class="result error hidden"></div>
+    </section>
+
+    <!-- Event log -->
+    <section id="section-log" class="card hidden">
+      <h2>Transaction Log</h2>
+      <div id="tx-log"></div>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Contract: <a id="link-voyager" href="https://sepolia.voyager.online/contract/0x01142b845add36cc4fa7a105e3d0dd0e61e5c0b0b4c22826e41c697a48b15fcb" target="_blank" class="mono">0x0114...5fcb</a>
+      &nbsp;&middot;&nbsp; Built for <a href="https://github.com/keep-starknet-strange/starkzap" target="_blank">Starkzap</a> Week 2
+      &nbsp;&middot;&nbsp; <a href="https://github.com/0xchvd/starkzap-agentlink" target="_blank">Source</a>
+    </p>
+  </footer>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

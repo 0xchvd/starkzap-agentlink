@@ -1,0 +1,390 @@
+[
+  {
+    "type": "impl",
+    "name": "AgentLinkEscrowImpl",
+    "interface_name": "agent_link::agent_link_escrow::IAgentLinkEscrow"
+  },
+  {
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
+      {
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
+      }
+    ]
+  },
+  {
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
+  },
+  {
+    "type": "struct",
+    "name": "agent_link::agent_link_escrow::LinkRules",
+    "members": [
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "session_pubkey",
+        "type": "core::felt252"
+      },
+      {
+        "name": "funding_token",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "total_cap",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "per_tx_cap",
+        "type": "core::integer::u256"
+      },
+      {
+        "name": "valid_until",
+        "type": "core::integer::u64"
+      },
+      {
+        "name": "revoked",
+        "type": "core::bool"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "agent_link::agent_link_escrow::IAgentLinkEscrow",
+    "items": [
+      {
+        "type": "function",
+        "name": "create_link",
+        "inputs": [
+          {
+            "name": "session_pubkey",
+            "type": "core::felt252"
+          },
+          {
+            "name": "funding_token",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "total_cap",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "per_tx_cap",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "valid_until",
+            "type": "core::integer::u64"
+          },
+          {
+            "name": "allowed_contracts",
+            "type": "core::array::Array::<core::starknet::contract_address::ContractAddress>"
+          },
+          {
+            "name": "allowed_selectors",
+            "type": "core::array::Array::<(core::starknet::contract_address::ContractAddress, core::felt252)>"
+          },
+          {
+            "name": "allowed_destinations",
+            "type": "core::array::Array::<core::starknet::contract_address::ContractAddress>"
+          },
+          {
+            "name": "funding",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u128"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "spend",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "target",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "selector",
+            "type": "core::felt252"
+          },
+          {
+            "name": "calldata",
+            "type": "core::array::Array::<core::felt252>"
+          },
+          {
+            "name": "nonce",
+            "type": "core::felt252"
+          },
+          {
+            "name": "sig_r",
+            "type": "core::felt252"
+          },
+          {
+            "name": "sig_s",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "revoke",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "remaining",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_rules",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "agent_link::agent_link_escrow::LinkRules"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "is_allowed_contract",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "addr",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "is_allowed_selector",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "addr",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "sel",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "is_allowed_destination",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "addr",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "nonce_used",
+        "inputs": [
+          {
+            "name": "link_id",
+            "type": "core::integer::u128"
+          },
+          {
+            "name": "nonce",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": []
+  },
+  {
+    "type": "event",
+    "name": "agent_link::agent_link_escrow::AgentLinkEscrow::LinkCreated",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "link_id",
+        "type": "core::integer::u128",
+        "kind": "key"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "session_pubkey",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "funding",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "valid_until",
+        "type": "core::integer::u64",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "agent_link::agent_link_escrow::AgentLinkEscrow::SpendExecuted",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "link_id",
+        "type": "core::integer::u128",
+        "kind": "key"
+      },
+      {
+        "name": "target",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "selector",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "agent_link::agent_link_escrow::AgentLinkEscrow::LinkRevoked",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "link_id",
+        "type": "core::integer::u128",
+        "kind": "key"
+      },
+      {
+        "name": "refund_amount",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "agent_link::agent_link_escrow::AgentLinkEscrow::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "LinkCreated",
+        "type": "agent_link::agent_link_escrow::AgentLinkEscrow::LinkCreated",
+        "kind": "nested"
+      },
+      {
+        "name": "SpendExecuted",
+        "type": "agent_link::agent_link_escrow::AgentLinkEscrow::SpendExecuted",
+        "kind": "nested"
+      },
+      {
+        "name": "LinkRevoked",
+        "type": "agent_link::agent_link_escrow::AgentLinkEscrow::LinkRevoked",
+        "kind": "nested"
+      }
+    ]
+  }
+]

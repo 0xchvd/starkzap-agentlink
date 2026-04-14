@@ -1,0 +1,37 @@
+{
+  "name": "@agentlink/sdk",
+  "version": "0.1.0",
+  "description": "AgentLink SDK — scoped-spend payment rails for AI agent recipients on Starknet via Starkzap",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "starknet": "^9.0.0",
+    "starkzap": "^0.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.4.0"
+  },
+  "license": "MIT",
+  "author": "0xchvd",
+  "keywords": [
+    "starknet",
+    "starkzap",
+    "session-key",
+    "ai-agent",
+    "escrow",
+    "paymaster",
+    "account-abstraction"
+  ]
+}
