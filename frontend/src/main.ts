@@ -5,7 +5,7 @@ import {
   TransactionFinalityStatus,
   type Call,
 } from "starkzap";
-import { cairo, num } from "starknet";
+import { cairo, num, WalletAccount } from "starknet";
 import abi from "../abi.json";
 
 // --- Starkzap SDK initialization ---
@@ -118,11 +118,15 @@ $connectBtn.addEventListener("click", async () => {
   }
 
   try {
-    const starknet = await connect({ modalMode: "alwaysAsk" });
-    if (!starknet) return;
+    const swo = await connect({ modalMode: "alwaysAsk" });
+    if (!swo) return;
 
-    await starknet.enable({ starknetVersion: "v5" } as any);
-    walletAccount = starknet.account;
+    // get-starknet v4: construct a WalletAccount from the wallet object
+    walletAccount = await WalletAccount.connect(provider, swo);
+
+    if (!walletAccount || !walletAccount.address) {
+      throw new Error("Wallet returned no account. Approve the connection in the extension.");
+    }
 
     escrowContract = new Contract(abi, ESCROW_ADDRESS, walletAccount);
 
@@ -139,7 +143,7 @@ $connectBtn.addEventListener("click", async () => {
     show($sectionLookup);
   } catch (err: any) {
     console.error("Connection failed:", err);
-    alert("Wallet connection failed. Make sure you have Braavos or ArgentX on Sepolia.");
+    alert("Wallet connection failed: " + (err?.message || err) + "\n\nOpen DevTools console for details.");
   }
 });
 
