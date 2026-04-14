@@ -9,12 +9,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "starknet": "^6.23.1",
+    "@starknet-io/get-starknet": "^4.0.5",
     "get-starknet-core": "^4.0.0",
-    "@starknet-io/get-starknet": "^4.0.5"
+    "starknet": "^6.23.1",
+    "starkzap": "^2.0.0"
   },
   "devDependencies": {
-    "vite": "^6.3.2",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2"
   }
 }

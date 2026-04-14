@@ -1,14 +1,21 @@
 import { connect, disconnect } from "@starknet-io/get-starknet";
-import { Contract, RpcProvider, cairo, CallData, num } from "starknet";
+import {
+  StarkZap,
+  Contract,
+  TransactionFinalityStatus,
+  type Call,
+} from "starkzap";
+import { cairo, num } from "starknet";
 import abi from "../abi.json";
+
+// --- Starkzap SDK initialization ---
+const sdk = new StarkZap({ network: "sepolia" });
+const provider = sdk.getProvider();
 
 // --- Constants ---
 const ESCROW_ADDRESS = "0x01142b845add36cc4fa7a105e3d0dd0e61e5c0b0b4c22826e41c697a48b15fcb";
 const STRK_TOKEN = "0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d";
 const VOYAGER_BASE = "https://sepolia.voyager.online";
-const RPC_URL = "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/demo";
-
-const provider = new RpcProvider({ nodeUrl: RPC_URL, chainId: "0x534e5f5345504f4c4941" as any });
 
 // --- State ---
 let walletAccount: any = null;
@@ -82,7 +89,21 @@ function logTx(type: string, txHash: string) {
   $txLog.prepend(entry);
 }
 
-// --- Wallet connection ---
+// --- Read contract state via Starkzap SDK ---
+async function readBalance(address: string): Promise<bigint> {
+  const strkContract = new Contract(erc20Abi, STRK_TOKEN, provider);
+  const bal = await strkContract.balance_of(address);
+  return BigInt(bal);
+}
+
+async function readLinkRules(linkId: number) {
+  const readContract = new Contract(abi, ESCROW_ADDRESS, provider);
+  const rules = await readContract.get_rules(linkId);
+  const remaining = await readContract.remaining(linkId);
+  return { rules, remaining };
+}
+
+// --- Wallet connection (browser wallet via get-starknet) ---
 $connectBtn.addEventListener("click", async () => {
   if (walletAccount) {
     await disconnect();
@@ -109,9 +130,8 @@ $connectBtn.addEventListener("click", async () => {
     $walletAddr.textContent = truncAddr(addr);
     $connectBtn.textContent = "Disconnect";
 
-    // Fetch STRK balance
-    const strkContract = new Contract(erc20Abi, STRK_TOKEN, provider);
-    const bal = await strkContract.balance_of(addr);
+    // Fetch STRK balance via Starkzap provider
+    const bal = await readBalance(addr);
     $walletBalance.textContent = formatStrk(bal);
 
     show($walletStatus);
@@ -162,38 +182,38 @@ $formCreate.addEventListener("submit", async (e) => {
   hide($createResult);
 
   try {
-    // Step 1: Approve escrow to pull funding tokens
+    // Step 1: Approve escrow to pull funding tokens (Starkzap Call type)
     const strkContract = new Contract(erc20Abi, STRK_TOKEN, walletAccount);
-    const approveCall = strkContract.populate("approve", [ESCROW_ADDRESS, cairo.uint256(fundingWei)]);
+    const approveCall: Call = strkContract.populate("approve", [ESCROW_ADDRESS, cairo.uint256(fundingWei)]);
 
-    // Step 2: Build create_link calldata as raw felts
-    // The tuple Array<(ContractAddress, felt252)> must be serialized as:
-    //   [array_len, addr1, sel1, addr2, sel2, ...]
-    const rawCalldata: string[] = [
-      sessionPubkey,                                            // session_pubkey
-      STRK_TOKEN,                                               // funding_token
-      "0x" + fundingWei.toString(16), "0x0",                    // total_cap (u256: low, high)
-      "0x" + perTxWei.toString(16), "0x0",                      // per_tx_cap (u256: low, high)
-      "0x" + validUntil.toString(16),                            // valid_until
-      "0x" + allowedContracts.length.toString(16),               // allowed_contracts array len
-      ...allowedContracts,                                       // allowed_contracts items
-      "0x" + allowedContracts.length.toString(16),               // allowed_selectors array len
-      ...allowedContracts.flatMap(c => [c, transferSelector]),   // (addr, selector) tuples
-      "0x" + allowedDests.length.toString(16),                   // allowed_destinations array len
-      ...allowedDests,                                           // allowed_destinations items
-      "0x" + fundingWei.toString(16), "0x0",                     // funding (u256: low, high)
-    ];
-
-    const createCall = {
+    // Step 2: Build create_link call with raw calldata
+    // Tuple Array<(ContractAddress, felt252)> serialized as: [len, addr1, sel1, ...]
+    const createCall: Call = {
       contractAddress: ESCROW_ADDRESS,
       entrypoint: "create_link",
-      calldata: rawCalldata,
+      calldata: [
+        sessionPubkey,                                            // session_pubkey
+        STRK_TOKEN,                                               // funding_token
+        "0x" + fundingWei.toString(16), "0x0",                    // total_cap (u256: low, high)
+        "0x" + perTxWei.toString(16), "0x0",                      // per_tx_cap (u256: low, high)
+        "0x" + validUntil.toString(16),                            // valid_until
+        "0x" + allowedContracts.length.toString(16),               // allowed_contracts array len
+        ...allowedContracts,                                       // allowed_contracts items
+        "0x" + allowedContracts.length.toString(16),               // allowed_selectors array len
+        ...allowedContracts.flatMap(c => [c, transferSelector]),   // (addr, selector) tuples
+        "0x" + allowedDests.length.toString(16),                   // allowed_destinations array len
+        ...allowedDests,                                           // allowed_destinations items
+        "0x" + fundingWei.toString(16), "0x0",                     // funding (u256: low, high)
+      ],
     };
 
-    // Execute both in a multicall (atomic)
+    // Atomic multicall: approve + create_link
     const { transaction_hash } = await walletAccount.execute([approveCall, createCall]);
 
-    await provider.waitForTransaction(transaction_hash);
+    // Wait for L2 confirmation via Starkzap provider
+    await provider.waitForTransaction(transaction_hash, {
+      successStates: [TransactionFinalityStatus.ACCEPTED_ON_L2],
+    });
     logTx("Create Link", transaction_hash);
 
     $createResult.innerHTML = `
@@ -207,9 +227,8 @@ $formCreate.addEventListener("submit", async (e) => {
     $createResult.className = "result success";
     show($createResult);
 
-    // Refresh balance
-    const strkRead = new Contract(erc20Abi, STRK_TOKEN, provider);
-    const newBal = await strkRead.balance_of(walletAccount.address);
+    // Refresh balance via Starkzap provider
+    const newBal = await readBalance(walletAccount.address);
     $walletBalance.textContent = formatStrk(newBal);
   } catch (err: any) {
     console.error("Create link failed:", err);
@@ -222,7 +241,7 @@ $formCreate.addEventListener("submit", async (e) => {
   }
 });
 
-// --- Lookup Link ---
+// --- Lookup Link (read-only via Starkzap SDK) ---
 $btnLookup.addEventListener("click", async () => {
   const linkId = parseInt($inpLinkId.value);
   if (!linkId || linkId < 1) return;
@@ -233,10 +252,7 @@ $btnLookup.addEventListener("click", async () => {
   hide($lookupError);
 
   try {
-    const readContract = new Contract(abi, ESCROW_ADDRESS, provider);
-
-    const rules = await readContract.get_rules(linkId);
-    const remaining = await readContract.remaining(linkId);
+    const { rules, remaining } = await readLinkRules(linkId);
 
     const sender = num.toHex(rules.sender);
     const totalCap = BigInt(rules.total_cap);
@@ -313,17 +329,18 @@ $btnRevoke.addEventListener("click", async () => {
   $btnRevoke.innerHTML = '<span class="spinner"></span>Revoking...';
 
   try {
-    const revokeCall = escrowContract.populate("revoke", [linkId]);
+    const revokeCall: Call = escrowContract.populate("revoke", [linkId]);
     const { transaction_hash } = await walletAccount.execute([revokeCall]);
-    await provider.waitForTransaction(transaction_hash);
+    await provider.waitForTransaction(transaction_hash, {
+      successStates: [TransactionFinalityStatus.ACCEPTED_ON_L2],
+    });
     logTx("Revoke Link #" + linkId, transaction_hash);
 
     // Refresh the lookup
     $btnLookup.click();
 
-    // Refresh balance
-    const strkRead = new Contract(erc20Abi, STRK_TOKEN, provider);
-    const newBal = await strkRead.balance_of(walletAccount.address);
+    // Refresh balance via Starkzap provider
+    const newBal = await readBalance(walletAccount.address);
     $walletBalance.textContent = formatStrk(newBal);
   } catch (err: any) {
     console.error("Revoke failed:", err);
